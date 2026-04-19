@@ -8,6 +8,7 @@ from app.routes import purchase
 from app.routes import billing
 from app.routes import supplier
 from app.routes import shop
+from app.routes import auth
 
 app = FastAPI()
 
@@ -20,6 +21,7 @@ app.include_router(purchase.router, prefix="/purchase")
 app.include_router(billing.router, prefix="/billing")
 app.include_router(supplier.router, prefix="/suppliers")
 app.include_router(shop.router, prefix="/shops")
+app.include_router(auth.router)
 
 @app.get("/")
 def root():

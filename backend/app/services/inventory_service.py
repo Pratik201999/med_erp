@@ -2,7 +2,9 @@ from sqlalchemy.orm import Session
 from app.models.batch import Batch
 from app.models.stock_ledger import StockLedger
 
+
 def stock_in(db: Session, batch_id: int, quantity: int, ref_type="PURCHASE", ref_id=None):
+    
     if quantity <= 0:
         raise Exception("Quantity must be greater than 0")
 
@@ -11,28 +13,26 @@ def stock_in(db: Session, batch_id: int, quantity: int, ref_type="PURCHASE", ref
     if not batch:
         raise Exception("Batch not found")
 
-    try:
-        batch.quantity += quantity
+    # 📈 Increase stock
+    batch.quantity += quantity
 
-        ledger = StockLedger(
-            batch_id=batch_id,
-            change_type="IN",
-            quantity=quantity,
-            reference_type=ref_type,
-            reference_id=ref_id
-        )
+    # 🧾 Ledger entry
+    ledger = StockLedger(
+        batch_id=batch_id,
+        change_type="IN",
+        quantity=quantity,
+        reference_type=ref_type,
+        reference_id=ref_id
+    )
 
-        db.add(ledger)
-        db.commit()
+    db.add(ledger)
 
-        return {"message": "Stock added", "new_quantity": batch.quantity}
-
-    except Exception as e:
-        db.rollback()
-        raise e
+    # ❗ NO COMMIT HERE
+    return True
 
 
 def stock_out(db: Session, batch_id: int, quantity: int, ref_type="BILL", ref_id=None):
+    
     if quantity <= 0:
         raise Exception("Quantity must be greater than 0")
 
@@ -44,22 +44,19 @@ def stock_out(db: Session, batch_id: int, quantity: int, ref_type="BILL", ref_id
     if batch.quantity < quantity:
         raise Exception("Insufficient stock")
 
-    try:
-        batch.quantity -= quantity
+    # 📉 Reduce stock
+    batch.quantity -= quantity
 
-        ledger = StockLedger(
-            batch_id=batch_id,
-            change_type="OUT",
-            quantity=quantity,
-            reference_type=ref_type,
-            reference_id=ref_id
-        )
+    # 🧾 Ledger entry
+    ledger = StockLedger(
+        batch_id=batch_id,
+        change_type="OUT",
+        quantity=quantity,
+        reference_type=ref_type,
+        reference_id=ref_id
+    )
 
-        db.add(ledger)
-        db.commit()
+    db.add(ledger)
 
-        return {"message": "Stock removed", "remaining_quantity": batch.quantity}
-
-    except Exception as e:
-        db.rollback()
-        raise e
+    # ❗ NO COMMIT HERE
+    return True
